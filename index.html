@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iterated Dilemma Lab</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #0d0d0e;
+      --panel-2: #121214;
+      --line: #242426;
+      --line-soft: #1a1a1c;
+      --text: #f7f7f8;
+      --muted: #85858d;
+      --dim: #5d5d65;
+      --violet: #8b5cf6;
+      --violet-soft: rgba(139, 92, 246, .15);
+      --green: #49d891;
+      --red: #ff6969;
+      --yellow: #f4c96a;
+      --cyan: #55c4ff;
+      --radius: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 260px minmax(0, 1fr); }
+    .sidebar { border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; min-height: 100vh; background: #070707; padding-top: 18px; }
+    .search { margin: 0 13px 23px; height: 38px; border: 1px solid var(--line); border-radius: 10px; display: flex; align-items: center; gap: 8px; padding: 0 11px; color: var(--dim); }
+    .search input { background: none; border: 0; outline: 0; color: var(--text); width: 100%; font-size: 12px; }
+    .nav-title { padding: 0 21px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .13em; color: var(--dim); }
+    .nav { padding: 0 12px; }
+    .nav button { border: 0; background: transparent; color: #a1a1a9; width: 100%; text-align: left; border-radius: 8px; padding: 10px 11px; display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 3px; }
+    .nav button:hover, .nav button.active { background: #18181a; color: white; }
+    .nav .icon { width: 18px; color: #898991; text-align: center; }
+    .sidebar-footer { margin-top: auto; border-top: 1px solid var(--line-soft); padding: 15px 13px; display: grid; gap: 5px; }
+    .sidebar-footer button { background: transparent; border: 0; color: var(--muted); text-align: left; padding: 8px; font-size: 12px; }
+    .sidebar-footer button:hover { color: var(--text); }
+    .main { min-width: 0; }
+    .topbar { height: 57px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; padding: 0 29px; color: var(--muted); font-size: 12px; }
+    .crumb strong { color: var(--text); font-weight: 500; }
+    .top-actions { display: flex; align-items: center; gap: 16px; }
+    .icon-btn { background: transparent; border: 0; color: var(--muted); font-size: 18px; padding: 3px; }
+    .icon-btn:hover { color: white; }
+    .content { max-width: 1250px; margin: 0 auto; padding: 38px 34px 60px; }
+    .hero { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 28px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .16em; color: var(--violet); font-size: 10px; font-weight: 700; margin-bottom: 11px; }
+    h1 { font-size: clamp(28px, 4vw, 43px); letter-spacing: -.055em; margin: 0 0 10px; line-height: 1; }
+    .hero p { color: var(--muted); max-width: 650px; margin: 0; font-size: 13px; line-height: 1.6; }
+    .run-btn { border: 0; background: white; color: #101012; border-radius: 8px; padding: 12px 17px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+    .run-btn:hover { background: #ded8ff; }
+    .grid { display: grid; gap: 16px; }
+    .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+    .control-card { padding: 17px; min-height: 116px; }
+    .card-label { color: var(--muted); font-size: 11px; display: block; margin-bottom: 11px; }
+    .control-row { display: flex; align-items: center; gap: 10px; }
+    .control-row input[type=range] { flex: 1; accent-color: var(--violet); }
+    .number { border: 1px solid var(--line); background: #09090a; color: white; border-radius: 7px; width: 66px; padding: 8px; text-align: center; }
+    .value { color: white; width: 47px; text-align: right; font-weight: 700; font-size: 15px; }
+    .hint { display: block; color: var(--dim); font-size: 10px; margin-top: 10px; }
+    .dashboard { grid-template-columns: minmax(0, 1.25fr) minmax(330px, .75fr); align-items: start; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 17px; border-bottom: 1px solid var(--line); }
+    .card-header h2 { margin: 0; font-size: 14px; letter-spacing: -.01em; }
+    .card-header span { color: var(--dim); font-size: 11px; }
+    .leaderboard { min-height: 420px; }
+    .leader-head, .leader-row { display: grid; grid-template-columns: 40px minmax(150px, 1fr) 90px 100px; align-items: center; gap: 10px; padding: 12px 17px; }
+    .leader-head { color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+    .leader-row { border-top: 1px solid var(--line-soft); font-size: 12px; transition: background .15s; }
+    .leader-row:hover { background: #141416; }
+    .rank { color: var(--dim); font-weight: 700; }
+    .rank.top { color: var(--yellow); }
+    .strategy-name { display: flex; align-items: center; gap: 9px; font-weight: 600; min-width: 0; }
+    .strategy-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+    .score { font-weight: 700; color: var(--text); }
+    .avg { color: var(--muted); }
+    .history { min-height: 420px; }
+    .select { border: 1px solid var(--line); background: #09090a; color: var(--text); border-radius: 7px; padding: 7px 9px; max-width: 190px; font-size: 11px; }
+    .history-body { padding: 17px; }
+    .match-score { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; }
+    .match-player { font-size: 12px; font-weight: 650; max-width: 135px; }
+    .match-player.right { text-align: right; }
+    .match-scoreline { text-align: center; color: var(--muted); font-size: 11px; }
+    .match-scoreline strong { display: block; color: white; font-size: 22px; letter-spacing: -.05em; }
+    .round-log { max-height: 270px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .round-line { display: grid; grid-template-columns: 42px 1fr 1fr 45px; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line-soft); font-size: 11px; }
+    .round-line:last-child { border-bottom: 0; }
+    .round-num { color: var(--dim); }
+    .move { display: flex; align-items: center; gap: 6px; }
+    .move-badge { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 6px; font-size: 10px; font-weight: 800; }
+    .move-badge.cooperate { color: var(--green); background: rgba(73,216,145,.12); }
+    .move-badge.defect { color: var(--red); background: rgba(255,105,105,.12); }
+    .round-points { color: var(--dim); text-align: right; }
+    .bottom-grid { grid-template-columns: 1fr 1fr; margin-top: 16px; }
+    .strategy-list { padding: 4px 17px 12px; }
+    .strategy-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line-soft); gap: 10px; }
+    .strategy-item:last-child { border-bottom: 0; }
+    .strategy-meta { min-width: 0; }
+    .strategy-meta strong { display: block; font-size: 12px; }
+    .strategy-meta small { color: var(--dim); font-size: 10px; }
+    .strategy-actions { display: flex; gap: 5px; }
+    .small-btn { background: #171719; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 6px 8px; font-size: 10px; }
+    .small-btn:hover { color: white; border-color: #55555c; }
+    .add-btn { background: var(--violet-soft); color: #c8b5ff; border: 1px solid rgba(139,92,246,.35); border-radius: 7px; padding: 8px 11px; font-size: 11px; font-weight: 700; }
+    .add-btn:hover { background: rgba(139,92,246,.25); }
+    .insight { padding: 19px; min-height: 210px; }
+    .insight-title { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .insight-title strong { color: var(--text); font-size: 14px; }
+    .bar-chart { height: 105px; display: flex; gap: 9px; align-items: end; margin: 22px 2px 9px; border-bottom: 1px solid var(--line); }
+    .bar-wrap { height: 100%; flex: 1; display: flex; align-items: end; }
+    .bar { width: 100%; background: linear-gradient(180deg, var(--violet), #5b36b9); border-radius: 4px 4px 0 0; min-height: 3px; transition: height .35s; }
+    .bar-labels { display: flex; justify-content: space-between; color: var(--dim); font-size: 9px; }
+    .modal-wrap { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; place-items: center; padding: 20px; z-index: 5; }
+    .modal-wrap.open { display: grid; }
+    .modal { width: min(440px, 100%); background: #111113; border: 1px solid #333338; border-radius: 12px; box-shadow: 0 20px 70px #000; }
+    .modal-header { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { margin: 0; font-size: 15px; }
+    .modal-body { padding: 18px; display: grid; gap: 13px; }
+    .field label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 6px; }
+    .field input, .field textarea { width: 100%; border: 1px solid var(--line); background: #09090a; color: white; border-radius: 7px; padding: 9px; outline: none; }
+    .field textarea { resize: vertical; min-height: 75px; }
+    .field input:focus, .field textarea:focus, .number:focus { border-color: var(--violet); }
+    .modal-footer { padding: 13px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+    .cancel-btn { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 7px; padding: 9px 13px; font-size: 11px; }
+    .save-btn { background: white; color: #111; border: 0; border-radius: 7px; padding: 9px 13px; font-weight: 700; font-size: 11px; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #eee; color: #101010; padding: 11px 14px; border-radius: 8px; font-size: 12px; font-weight: 650; transform: translateY(90px); transition: transform .2s; z-index: 9; }
+    .toast.show { transform: translateY(0); }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 72px minmax(0, 1fr); }
+      .search, .nav-title, .nav button span:not(.icon), .sidebar-footer { display: none; }
+      .nav button { justify-content: center; padding: 11px 0; }
+      .content { padding: 29px 20px 45px; }
+    }
+    @media (max-width: 680px) {
+      .app { display: block; }
+      .sidebar { display: none; }
+      .topbar { padding: 0 17px; }
+      .content { padding: 25px 15px 35px; }
+      .hero { display: block; }
+      .run-btn { margin-top: 18px; }
+      .controls, .dashboard, .bottom-grid { grid-template-columns: 1fr; }
+      .leader-head, .leader-row { grid-template-columns: 30px minmax(100px, 1fr) 67px 75px; padding-left: 12px; padding-right: 12px; }
+      .hero p { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <label class="search"><span>⌕</span><input id="toolSearch" placeholder="Search strategies" aria-label="Search strategies"></label>
+      <div class="nav-title">Workspace</div>
+      <nav class="nav">
+        <button class="active" data-view="simulator"><span class="icon">▦</span><span>Simulator</span></button>
+        <button data-view="history"><span class="icon">◷</span><span>Run history</span></button>
+        <button data-view="setups"><span class="icon">☆</span><span>Saved setups</span></button>
+      </nav>
+      <div class="nav-title" style="margin-top:22px">Learn</div>
+      <nav class="nav">
+        <button data-view="learn"><span class="icon">?</span><span>How it works</span></button>
+        <button data-view="payoffs"><span class="icon">⌘</span><span>Payoff matrix</span></button>
+      </nav>
+      <div class="sidebar-footer"><button id="exportResults">↓ &nbsp; Export results</button></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"></header>
+      <section class="content" id="simulatorView">
+        <div class="hero">
+          <div><div class="eyebrow">Strategy arena</div><h1>Iterated Dilemma Lab</h1><p>Explore cooperation, betrayal, and the strategies that emerge when every decision echoes into the next round.</p></div>
+          <button class="run-btn" id="runTournament">▶ &nbsp; Run tournament</button>
+        </div>
+
+        <div class="grid controls">
+          <div class="card control-card"><label class="card-label" for="rounds">Rounds per match</label><div class="control-row"><input id="rounds" type="range" min="5" max="200" value="50"><span class="value" id="roundsValue">50</span></div><span class="hint">More rounds reveal long-term behavior</span></div>
+          <div class="card control-card"><label class="card-label" for="noise">Noise / mutation probability</label><div class="control-row"><input id="noise" type="range" min="0" max="20" value="3"><span class="value" id="noiseValue">3%</span></div><span class="hint">Chance of an accidental defection each turn</span></div>
+          <div class="card control-card"><label class="card-label">Payoff matrix</label><div class="control-row" style="gap:7px"><span class="number" style="width:47px;color:var(--green)">3</span><span style="color:var(--dim)">/</span><span class="number" style="width:47px;color:var(--yellow)">5</span><span style="color:var(--dim)">/</span><span class="number" style="width:47px;color:var(--red)">1</span></div><span class="hint">CC: 3 &nbsp;|&nbsp; CD: 0 / 5 &nbsp;|&nbsp; DD: 1</span></div>
+        </div>
+
+        <div class="grid dashboard">
+          <section class="card leaderboard"><div class="card-header"><h2>Leaderboard</h2><span id="matchCount">15 matches · 50 rounds</span></div><div class="leader-head"><span>#</span><span>Strategy</span><span>Score</span><span>Avg / round</span></div><div id="leaderRows"></div></section>
+          <section class="card history"><div class="card-header"><h2>Match history</h2><select class="select" id="matchSelect" aria-label="Select match"></select></div><div class="history-body" id="historyBody"></div></section>
+        </div>
+
+        <div class="grid bottom-grid">
+          <section class="card"><div class="card-header"><h2>Strategy roster</h2><button class="add-btn" id="addStrategy">+ Add custom</button></div><div class="strategy-list" id="strategyList"></div></section>
+        </div>
+      </section>
+      <section class="content" id="pageView" hidden></section>
+    </main>
+  </div>
+
+  <div class="modal-wrap" id="modalWrap"><form class="modal" id="strategyForm"><div class="modal-header"><h3 id="modalTitle">Add custom strategy</h3><button type="button" class="icon-btn" id="closeModal">×</button></div><div class="modal-body"><div class="field"><label for="strategyName">Strategy name</label><input id="strategyName" required maxlength="28" placeholder="e.g. Patient Mirror"></div><div class="field"><label for="strategyDescription">Description</label><textarea id="strategyDescription" maxlength="110" placeholder="Describe the behavior"></textarea></div><div class="field"><label for="strategyRule">Rule</label><select id="strategyRule" class="select" style="width:100%"><option value="cooperate">Always cooperate</option><option value="defect">Always defect</option><option value="mirror">Mirror opponent's last move</option><option value="random">Random 50/50</option></select></div></div><div class="modal-footer"><button type="button" class="cancel-btn" id="cancelModal">Cancel</button><button class="save-btn" type="submit">Save strategy</button></div></form></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const builtIns = [
+      { id: "ac", name: "Always Cooperate", description: "Offers cooperation in every round.", color: "#49d891", type: "ac", builtIn: true },
+      { id: "ad", name: "Always Defect", description: "Takes the safe reward every time.", color: "#ff6969", type: "ad", builtIn: true },
+      { id: "tft", name: "Tit-for-Tat", description: "Starts kind, then mirrors the opponent.", color: "#55c4ff", type: "tft", builtIn: true },
+      { id: "stft", name: "Suspicious Tit-for-Tat", description: "Starts with defection, then mirrors.", color: "#c084fc", type: "stft", builtIn: true },
+      { id: "grim", name: "Grim Trigger", description: "Cooperates until betrayed, then defects.", color: "#f4c96a", type: "grim", builtIn: true },
+      { id: "random", name: "Random", description: "Chooses a move with equal probability.", color: "#fb923c", type: "random", builtIn: true }
+    ];
+    let strategies = [...builtIns];
+    let matches = [];
+    let editingId = null;
+    const $ = (id) => document.getElementById(id);
+
+    function moveFor(strategy, round, ownMoves, opponentMoves) {
+      if (strategy.type === "ac" || strategy.type === "cooperate") return "C";
+      if (strategy.type === "ad" || strategy.type === "defect") return "D";
+      if (strategy.type === "random") return Math.random() < .5 ? "C" : "D";
+      if (strategy.type === "tft" || strategy.type === "mirror") return round === 0 ? "C" : opponentMoves[round - 1];
+      if (strategy.type === "stft") return round === 0 ? "D" : opponentMoves[round - 1];
+      if (strategy.type === "grim") return opponentMoves.includes("D") ? "D" : "C";
+      return "C";
+    }
+
+    function playMatch(a, b, rounds, noise) {
+      const aMoves = [], bMoves = [], aPoints = [], bPoints = [];
+      for (let i = 0; i < rounds; i++) {
+        let aMove = moveFor(a, i, aMoves, bMoves);
+        let bMove = moveFor(b, i, bMoves, aMoves);
+        if (Math.random() < noise) aMove = "D";
+        if (Math.random() < noise) bMove = "D";
+        aMoves.push(aMove); bMoves.push(bMove);
+        if (aMove === "C" && bMove === "C") { aPoints.push(3); bPoints.push(3); }
+        else if (aMove === "D" && bMove === "D") { aPoints.push(1); bPoints.push(1); }
+        else if (aMove === "D") { aPoints.push(5); bPoints.push(0); }
+        else { aPoints.push(0); bPoints.push(5); }
+      }
+      return { a, b, aMoves, bMoves, aPoints, bPoints, aTotal: aPoints.reduce((x, y) => x + y, 0), bTotal: bPoints.reduce((x, y) => x + y, 0) };
+    }
+
+    function runTournament() {
+      const rounds = Number($("rounds").value);
+      const noise = Number($("noise").value) / 100;
+      matches = [];
+      const totals = Object.fromEntries(strategies.map(s => [s.id, { strategy: s, score: 0, matches: 0 }]));
+      for (let i = 0; i < strategies.length; i++) {
+        for (let j = i; j < strategies.length; j++) {
+          const match = playMatch(strategies[i], strategies[j], rounds, noise);
+          matches.push(match);
+          totals[strategies[i].id].score += match.aTotal; totals[strategies[i].id].matches++;
+          totals[strategies[j].id].score += match.bTotal; totals[strategies[j].id].matches++;
+        }
+      }
+      const rankings = Object.values(totals).sort((a, b) => b.score - a.score);
+      renderLeaderboard(rankings, rounds);
+      renderMatches();
+      $("matchCount").textContent = `${matches.length} matches · ${rounds} rounds`;
+    }
+
+    function renderLeaderboard(rankings, rounds) {
+      $("leaderRows").innerHTML = rankings.map((item, index) => `<div class="leader-row"><span class="rank ${index < 3 ? "top" : ""}">${String(index + 1).padStart(2, "0")}</span><span class="strategy-name"><i class="dot" style="background:${item.strategy.color}"></i><span>${escapeHtml(item.strategy.name)}</span></span><span class="score">${item.score.toLocaleString()}</span><span class="avg">${(item.score / item.matches / rounds).toFixed(2)} pts</span></div>`).join("");
+    }
+
+    function renderMatches() {
+      $("matchSelect").innerHTML = matches.map((m, i) => `<option value="${i}">${escapeHtml(m.a.name)} × ${escapeHtml(m.b.name)}</option>`).join("");
+      $("matchSelect").onchange = renderHistory;
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (!matches.length) return;
+      const match = matches[Number($("matchSelect").value) || 0];
+      $("historyBody").innerHTML = `<div class="match-score"><div class="match-player">${escapeHtml(match.a.name)}</div><div class="match-scoreline"><strong>${match.aTotal} <span style="color:var(--dim)">–</span> ${match.bTotal}</strong><span>${match.aMoves.length} rounds</span></div><div class="match-player right">${escapeHtml(match.b.name)}</div></div><div class="round-log">${match.aMoves.map((move, i) => `<div class="round-line"><span class="round-num">R${i + 1}</span><span class="move"><b class="move-badge ${move === "C" ? "cooperate" : "defect"}">${move}</b>${move === "C" ? "Cooperate" : "Defect"}</span><span class="move"><b class="move-badge ${match.bMoves[i] === "C" ? "cooperate" : "defect"}">${match.bMoves[i]}</b>${match.bMoves[i] === "C" ? "Cooperate" : "Defect"}</span><span class="round-points">${match.aPoints[i]} / ${match.bPoints[i]}</span></div>`).join("")}</div>`;
+    }
+
+    function renderRoster() {
+      $("strategyList").innerHTML = strategies.map(strategy => `<div class="strategy-item"><div class="strategy-meta"><strong><i class="dot" style="display:inline-block;background:${strategy.color};margin-right:7px"></i>${escapeHtml(strategy.name)}</strong><small>${escapeHtml(strategy.description)}</small></div><div class="strategy-actions">${strategy.builtIn ? "" : `<button class="small-btn edit-strategy" data-id="${strategy.id}">Edit</button><button class="small-btn delete-strategy" data-id="${strategy.id}">Remove</button>`}</div></div>`).join("");
+      document.querySelectorAll(".edit-strategy").forEach(btn => btn.onclick = () => openModal(btn.dataset.id));
+      document.querySelectorAll(".delete-strategy").forEach(btn => btn.onclick = () => {
+        strategies = strategies.filter(s => s.id !== btn.dataset.id);
+        runTournament(); renderRoster(); showToast("Custom strategy removed");
+      });
+    }
+
+    function openModal(id = null) {
+      editingId = id;
+      const strategy = strategies.find(s => s.id === id);
+      $("modalTitle").textContent = strategy ? "Edit custom strategy" : "Add custom strategy";
+      $("strategyName").value = strategy?.name || "";
+      $("strategyDescription").value = strategy?.description || "";
+      $("strategyRule").value = strategy?.type || "cooperate";
+      $("modalWrap").classList.add("open");
+      $("strategyName").focus();
+    }
+    function closeModal() { $("modalWrap").classList.remove("open"); editingId = null; }
+    function showToast(message) { const toast = $("toast"); toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2200); }
+    function escapeHtml(value) { return value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char])); }
+
+    $("rounds").oninput = () => $("roundsValue").textContent = $("rounds").value;
+    $("noise").oninput = () => $("noiseValue").textContent = `${$("noise").value}%`;
+    $("runTournament").onclick = () => { runTournament(); showToast("Tournament complete"); };
+    $("addStrategy").onclick = () => openModal();
+    $("closeModal").onclick = closeModal; $("cancelModal").onclick = closeModal;
+    $("modalWrap").onclick = event => { if (event.target === $("modalWrap")) closeModal(); };
+    $("strategyForm").onsubmit = event => {
+      event.preventDefault();
+      const name = $("strategyName").value.trim();
+      const description = $("strategyDescription").value.trim() || "A custom strategy.";
+      const type = $("strategyRule").value;
+      if (editingId) {
+        const current = strategies.find(s => s.id === editingId);
+        Object.assign(current, { name, description, type });
+        showToast("Strategy updated");
+      } else {
+        strategies.push({ id: `custom-${Date.now()}`, name, description, type, color: ["#e879f9", "#a78bfa", "#34d399", "#fbbf24"][strategies.length % 4], builtIn: false });
+        showToast("Custom strategy added");
+      }
+      closeModal(); renderRoster(); runTournament();
+    };
+    renderRoster();
+    runTournament();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
